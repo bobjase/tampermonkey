@@ -1,0 +1,53 @@
+// ==UserScript==
+// @name         PlanIO Bill Report - Links
+// @namespace    http://tampermonkey.net/
+// @version      0.3
+// @description  try to take over the world!
+// @author       James
+// @match        *://picasso.plan.io/projects/picasso/time_entries/*
+// @require      https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.js
+// @resource     jqUI_CSS  https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.css
+// @resource     jqUI_CSS  https://cdn.jsdelivr.net/fancybox/2.1.5/helpers/jquery.fancybox-buttons.min.css
+// @grant        GM_addStyle
+// @grant        GM_getResourceText
+// ==/UserScript==
+/* jshint -W097 */
+'use strict';
+
+var jqUI_CssSrc = GM_getResourceText ("jqUI_CSS");
+GM_addStyle (jqUI_CssSrc);
+
+
+function addGlobalStyle(css) {
+    var head, style;
+    head = document.getElementsByTagName('head')[0];
+    if (!head) { return; }
+    style = document.createElement('style');
+    style.type = 'text/css';
+    style.innerHTML = css;
+    head.appendChild(style);
+}
+
+addGlobalStyle("#fancybox-loading div { background: url('https://raw.githubusercontent.com/fancyapps/fancyBox/master/source/fancybox_loading.gif') center center no-repeat;}");
+addGlobalStyle("#fancybox-loading, .fancybox-close, .fancybox-prev span, .fancybox-next span { background-image: url('https://raw.githubusercontent.com/fancyapps/fancyBox/master/source/fancybox_sprite.png'); } ");
+addGlobalStyle(".fancybox-overlay { background: url('https://raw.githubusercontent.com/fancyapps/fancyBox/master/source/fancybox_overlay.png'); } ");
+
+//GM_addStyle ("https://cdn.jsdelivr.net/thickbox/3.1/thickbox.css");
+
+var billableItemsArray = $("td[class='name']:contains('#')");
+
+for (var x = 0; x < billableItemsArray.length; x++) {
+    var thisItem = $(billableItemsArray[x]);
+    var content = thisItem.text();
+    var billItemID = content.split("#")[1].split(":")[0];
+    
+    var hyperLinkText = "<a data-fancybox-type='iframe' class='fancybox' starget='_blank' href='/issues/" + billItemID + "'>" + content + "</a>";
+    thisItem.html(hyperLinkText);
+}
+
+$("a.fancybox").fancybox({});
+
+/*
+$("#time-report tr").addClass("issue");
+$("#time-report tr").addClass("hascontextmenu");
+*/
