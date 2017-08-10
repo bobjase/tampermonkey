@@ -1,0 +1,91 @@
+// ==UserScript==
+// @name         PlanIO Issues - Tooltips
+// @namespace    http://tampermonkey.net/
+// @version      0.3
+// @description  try to take over the world!
+// @author       James
+// @match        *://picasso.plan.io/projects/picasso/issues*
+// @match        *://picasso.plan.io/issues*
+// @require      http://cdn.jsdelivr.net/qtip2/3.0.3/jquery.qtip.min.js
+// @resource     jqUI_CSS  http://cdn.jsdelivr.net/qtip2/3.0.3/jquery.qtip.min.css
+// @grant        GM_addStyle
+// @grant        GM_getResourceText
+// ==/UserScript==
+/* jshint -W097 */
+'use strict';
+
+var jqUI_CssSrc = GM_getResourceText ("jqUI_CSS");
+GM_addStyle (jqUI_CssSrc);
+
+addGlobalStyle(".timeSpentTooltip { color:blue; text-decoration:underline;}");
+addGlobalStyle(".tooltipSizer { max-width: 1000px !important; }");
+addGlobalStyle(".tooltipSizer #query_form_with_buttons, .tooltipSizer h2, .tooltipSizer .tabs, .tooltipSizer .other-formats, .tooltipSizer .contextual  { display: none; }");
+
+function addGlobalStyle(css) {
+    var head, style;
+    head = document.getElementsByTagName('head')[0];
+    if (!head) { return; }
+    style = document.createElement('style');
+    style.type = 'text/css';
+    style.innerHTML = css;
+    head.appendChild(style);
+}
+
+function setupTooltipURL() {
+    var spentTimeTDs = $("td.total_spent_hours");
+    if (spentTimeTDs.length >= 1) {
+        for (var x = 0; x < spentTimeTDs.length; x++) {
+            var singleSpentTimeTD = $(spentTimeTDs[x]);
+            if (singleSpentTimeTD.text() != "0:00") {
+                singleSpentTimeTD.addClass("timeSpentTooltip");
+                var singleSubjectTD = $(singleSpentTimeTD.parent().find(".subject")[0]);
+                var singleSubjectTD_anchor = $(singleSubjectTD.find("a")[0]);
+                var timeSpentURL = singleSubjectTD_anchor.attr("href") + "/time_entries";
+                singleSpentTimeTD.attr("tooltipURL",timeSpentURL);
+            }
+        }
+    }
+}
+
+setupTooltipURL();
+
+$('.timeSpentTooltip').qtip({
+    content: {
+        text: function(event, api) {
+            // This time, we return the deferred object, not a 'Loading...' message.
+            return $.ajax({
+                async: false,
+                url: $(this).attr('tooltipURL') // Use data-url attribute for the URL
+            })
+            .then(function(content) {
+                // Return the content instead of using .set(). If you're wanting to select
+                // specific elements, see ther above section and adapt the `api.set` call
+                // into a `return elements` statement!
+                return content;
+            }, function(xhr, status, error) {
+                // Errors aren't handled by the library automatically, so
+                // you'll need to call .set() upon failure, just as before.
+                api.set('content.text', status + ': ' + error);
+            });
+        }
+    },
+        events: {
+            visible: function(event, api) {
+                api.reposition();
+            }
+        },
+    position: {
+        effect: false,
+        adjust: {
+            resize: true
+        },
+        my: 'right center',
+        at: 'left center',
+    },
+    style: {
+         classes: 'qtip-light qtip-shadow tooltipSizer'
+    },
+    hide: {
+        delay: 300
+    }
+});
