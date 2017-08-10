@@ -1,0 +1,52 @@
+// ==UserScript==
+// @name         PlanIO Issues - Thickbox
+// @namespace    http://tampermonkey.net/
+// @version      0.3
+// @description  try to take over the world!
+// @author       James
+// @match        *://picasso.plan.io/projects/picasso/issues*
+// @match        *://picasso.plan.io/issues*
+// @require      https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.js
+// @resource     jqUI_CSS  https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.css
+// @resource     jqUI_CSS  https://cdn.jsdelivr.net/fancybox/2.1.5/helpers/jquery.fancybox-buttons.min.css
+// @grant        GM_addStyle
+// @grant        GM_getResourceText
+// ==/UserScript==
+/* jshint -W097 */
+'use strict';
+
+var jqUI_CssSrc = GM_getResourceText ("jqUI_CSS");
+GM_addStyle (jqUI_CssSrc);
+
+
+function addGlobalStyle(css) {
+    var head, style;
+    head = document.getElementsByTagName('head')[0];
+    if (!head) { return; }
+    style = document.createElement('style');
+    style.type = 'text/css';
+    style.innerHTML = css;
+    head.appendChild(style);
+}
+
+addGlobalStyle("#fancybox-loading div { background: url('https://raw.githubusercontent.com/fancyapps/fancyBox/master/source/fancybox_loading.gif') center center no-repeat;}");
+addGlobalStyle("#fancybox-loading, .fancybox-close, .fancybox-prev span, .fancybox-next span { background-image: url('https://raw.githubusercontent.com/fancyapps/fancyBox/master/source/fancybox_sprite.png'); } ");
+addGlobalStyle(".fancybox-overlay { background: url('https://raw.githubusercontent.com/fancyapps/fancyBox/master/source/fancybox_overlay.png'); } ");
+
+$("td.subject a").addClass("fancybox");
+$("td.subject a").attr('data-fancybox-type', 'iframe');
+
+$("td.subject a").fancybox({
+    afterShow : function() {
+        $(window.frames[0].document).find("a.external").attr("target","_blank");
+        
+        /*$(window.frames[0].document).find("a.external").click(function() {
+            var thisTarget = this.href;
+            $.fancybox.open([{href : thisTarget, title : 'External Link'}]);
+            //alert( "Handler for .click() called on " + this.href );
+            return false;
+        });*/
+    }
+});
+
+
