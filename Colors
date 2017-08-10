@@ -1,0 +1,127 @@
+// ==UserScript==
+// @name         PlanIO Colors
+// @namespace    http://tampermonkey.net/
+// @version      0.3
+// @description  try to take over the world!
+// @author       James
+// @match        *://picasso.plan.io/*
+// @exclude      *://picasso.plan.io/queries/*
+// @resource     jqUI_CSS https://fonts.googleapis.com/css?family=Arimo|Cabin|Hind|Lato|Merriweather+Sans|Muli|Noto+Sans|Oxygen|Roboto
+// @grant        GM_addStyle
+// @grant        GM_getResourceText
+// ==/UserScript==
+/* jshint -W097 */
+'use strict';
+
+var jqUI_CssSrc = GM_getResourceText ("jqUI_CSS");
+GM_addStyle (jqUI_CssSrc);
+
+function addGlobalStyle(css) {
+    var head, style;
+    head = document.getElementsByTagName('head')[0];
+    if (!head) { return; }
+    style = document.createElement('style');
+    style.type = 'text/css';
+    style.innerHTML = css;
+    head.appendChild(style);
+}
+
+/*
+ 1 - Not started
+ 2 - In progress
+ 3 - QA Ready
+ 4 - Closed
+ 5 - QA Failed
+ 6 - QA Success
+ 7 - Waiting
+ 8 - CNR
+ 9 - Abandoned
+ 10 - Paused 
+ 11 - As designed
+ 12 - Closed/duplicate
+*/
+
+// colorize the rows for easy consumption
+addGlobalStyle('tr.status-2 { background-color:lightblue !important; }');
+addGlobalStyle('tr.status-3 { background-color:lightgreen !important; }');
+addGlobalStyle('tr.status-4 { color:purple !important; text-decoration:line-through; opacity:.3;}');
+addGlobalStyle('tr.status-5 { background-color:pink !important; }');
+addGlobalStyle('tr.status-7 { color:#888 !important; text-decoration:line-through; opacity:.3;}');
+addGlobalStyle('tr.status-8 * { color:maroon !important; text-decoration:line-through; opacity:.3;}');
+addGlobalStyle('tr.status-9 { color:#888 !important; text-decoration:line-through; opacity:.3;}');
+addGlobalStyle('tr.status-10 * { color:maroon !important; text-decoration:line-through; opacity:.3;}');
+addGlobalStyle('tr.status-11 { color:#888 !important; text-decoration:line-through; opacity:.3;}');
+addGlobalStyle('tr.status-12 { color:#888 !important; text-decoration:line-through; opacity:.3;}');
+
+// replace their terrible, hard to read, gigantic default font
+addGlobalStyle('td { font-family: \'Roboto\' !important; font-size: 11px; text-indent: 3px; } ');
+addGlobalStyle('td.subject a { color:black !important; font: bold 11px \'Lato\' !important; text-shadow: 1px 1px 1px rgba(5,38,255, 0.15);  } ');
+
+addGlobalStyle('#sidebar * { line-height: 1.0 !important;  } ');
+
+addGlobalStyle('.sidebar-highlight { zoom: .2; } ');
+addGlobalStyle('.sidebar-highlight:hover { zoom: 1.0; } ');
+
+addGlobalStyle('body { line-height: 1.0 !important; } ');
+
+
+// hide the giant filters until we're ready to use them
+addGlobalStyle('#query_form_with_buttons { zoom: .4; width:300px; } ');
+addGlobalStyle('#query_form_with_buttons:hover { zoom: 1.0; width:100%; } ');
+
+addGlobalStyle('#query_form_with_buttons table { display:none; } ');
+addGlobalStyle('#query_form_with_buttons:hover table { display:block; } ');
+
+// hide the stupid priority
+addGlobalStyle('#issue_priority_id { display:none !important; }');
+addGlobalStyle('div.priority.attribute { display:none !important; }');
+
+// nicknames
+$("a:contains('Alex Kovalenko')").html("Alex (R1)");
+$("a:contains('Angel Jakimovski')").html("Angel (R2)");
+$("a:contains('Milos Rasuo')").html("Milos (R3)");
+
+$("td:contains('Alex Kovalenko'):not(.values)").html("Alex (R1)");
+$("td:contains('Angel Jakimovski'):not(.values)").html("Angel (R2)");
+$("td:contains('Milos Rasuo'):not(.values)").html("Milos (R3)");
+
+// add totals to the column headers
+function addTotals() {
+    var spentTimeTH = $("th[title='Sort by \"Spent time\"']");
+    if (spentTimeTH.length == 1) {
+         var spentTimeIncomplete = "";
+         var totalSpentTime = 0;
+         var spentTimeTDs = $(".total_spent_hours");
+
+         for (var x = 0; x < spentTimeTDs.length; x++) {
+             var singleTD = $(spentTimeTDs[x]);
+             var singleTD_val = parseFloat( singleTD.text() );
+             if (!isNaN(singleTD_val)) {
+                 totalSpentTime +=  singleTD_val;
+             } else {
+                  spentTimeIncomplete = "*";
+             }
+         }
+         spentTimeTH.html( spentTimeTH.html() + " <div style='padding-left:15px;font:bold 10px tahoma;'>(" + totalSpentTime + spentTimeIncomplete + ")</div>" );
+    }
+
+    var estimatedTimeTH = $("th[title='Sort by \"Estimated time\"']");
+    if (estimatedTimeTH.length == 1) {
+         var totalEstimatedTime = 0;
+         var estimatedTimeIncomplete = "";
+         var estimatedTimeTDs = $(".estimated_hours");
+
+         for (var y = 0; y < estimatedTimeTDs.length; y++) {
+             var singleEstimateTD = $(estimatedTimeTDs[y]);
+             var singleEstimateTD_val = parseFloat( singleEstimateTD.text() );
+             if (!isNaN(singleEstimateTD_val)) {
+                totalEstimatedTime +=  singleEstimateTD_val;
+             } else {
+                 estimatedTimeIncomplete = "*";
+             }
+         }
+         estimatedTimeTH.html( estimatedTimeTH.html() + " <div style='padding-left:15px;font:bold 10px tahoma;'>(" + totalEstimatedTime + estimatedTimeIncomplete + ")</div>" );
+    }
+}
+
+addTotals();
